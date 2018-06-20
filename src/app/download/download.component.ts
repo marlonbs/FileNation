@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute }               from '@angular/router';
-
+import JSZip                        from 'jszip';
+import { Router }                 from '@angular/router';
 import { Subject }                      from 'rxjs';
 
 import { environment }        from '../../environments/environment';
@@ -16,7 +17,7 @@ export class DownloadComponent implements OnInit {
   hash: number;
   private sub: any;
   private loading = true;
-  private timeLeft = '';
+  private timeLeft: object;
   private expiredDownload = false;
   private filesReady = false;
   private data: Object;
@@ -26,7 +27,7 @@ export class DownloadComponent implements OnInit {
 
   downloadDataObservable = new Subject<Object>();
 
-  constructor(private filesService: FilesService, private route: ActivatedRoute) { }
+  constructor(private filesService: FilesService, private route: ActivatedRoute, private router: Router) { }
 
   backHome() {
     this.router.navigate(['/']);
@@ -39,7 +40,6 @@ export class DownloadComponent implements OnInit {
         if(data.errors) {
           this.expiredDownload = true;
         } else {
-          console.log(data);
           this.downloadDataObservable.next(data);
           this.data = data;
           this.startExpiresTimer(data.dateExpire);
@@ -58,18 +58,15 @@ export class DownloadComponent implements OnInit {
 
   startExpiresTimer(date) {
     const expireDate = new Date(date);
-    console.log(expireDate.toUTCString());
-    console.log(expireDate.getTime());
     setInterval(() => {
       var str = "" + 1
       var pad = "00"
 
-    const timeLeft = [];
       // get total seconds between the times
     var delta = expireDate.getTime() - Date.now();
     if(delta < 0) {
       this.expiredDownload = true;
-      this.stopExpiresTimer():
+      this.stopExpiresTimer();
     } else {
       delta = Math.abs(delta) / 1000;
     }
@@ -96,7 +93,6 @@ export class DownloadComponent implements OnInit {
       seconds,
       secondsFormat: seconds.toString().padStart(2, '0'),
     }
-      this.expireTimer = this.timeLeft;
     }, 1000)
 
   }
